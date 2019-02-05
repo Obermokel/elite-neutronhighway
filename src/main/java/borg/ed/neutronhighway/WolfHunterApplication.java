@@ -54,7 +54,7 @@ public class WolfHunterApplication {
 			while (stream.hasNext()) {
 				counter++;
 				Body wolfRayetStar = stream.next();
-				logger.info(String.format("%-40s\t%-40s", wolfRayetStar.getName(), wolfRayetStar.getFirstDiscoveredBy()));
+				logger.info(String.format("%-40s", wolfRayetStar.getName()));
 				if (wolfRayetStar.getName().matches(".+ AA-A h\\d+.*")) {
 					String sectorName = wolfRayetStar.getName().substring(0, wolfRayetStar.getName().indexOf(" AA-A h"));
 					wolfRayetSectorNames.add(sectorName);

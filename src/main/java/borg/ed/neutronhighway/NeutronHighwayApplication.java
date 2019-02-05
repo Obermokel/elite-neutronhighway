@@ -128,10 +128,10 @@ public class NeutronHighwayApplication {
 		float lastTravelledDistance = 0f;
 		float maxJumpDistance = 0f;
 		for (Path p : sortedPaths) {
-			float jumpDistance = path.getTravelledDistanceLy() - lastTravelledDistance;
+			float jumpDistance = p.getTravelledDistanceLy() - lastTravelledDistance;
 			maxJumpDistance = Math.max(maxJumpDistance, jumpDistance);
-			logger.info(String.format(Locale.US, "%-30s %,.1f Ly (+%,.1f Ly)", p.getMinimizedStarSystem().getName(), path.getTravelledDistanceLy(), jumpDistance));
-			lastTravelledDistance = path.getTravelledDistanceLy();
+			logger.info(String.format(Locale.US, "%-30s %,.1f Ly (+%,.1f Ly)", p.getMinimizedStarSystem().getName(), p.getTravelledDistanceLy(), jumpDistance));
+			lastTravelledDistance = p.getTravelledDistanceLy();
 		}
 		logger.info("maxJumpDistance=" + maxJumpDistance);
 
@@ -335,7 +335,7 @@ public class NeutronHighwayApplication {
 
 			this.fromSystem = fromSystem;
 			this.fromBodies = Collections.unmodifiableList(fromBodies);
-			Optional<Body> optionalFrom = fromBodies.stream().filter(b -> Boolean.TRUE.equals(b.getDistanceToArrival() != null && b.getDistanceToArrival().doubleValue() == 0)).findFirst();
+			Optional<Body> optionalFrom = fromBodies.stream().filter(b -> Boolean.TRUE.equals(b.getDistanceToArrivalLs() != null && b.getDistanceToArrivalLs().doubleValue() == 0)).findFirst();
 			if (optionalFrom.isPresent()) {
 				this.fromStar = optionalFrom.get();
 				this.fromSpectralClass = this.fromStar.getStarClass().name().replaceAll("N", "NS");
@@ -346,7 +346,7 @@ public class NeutronHighwayApplication {
 
 			this.toSystem = toSystem;
 			this.toBodies = Collections.unmodifiableList(toBodies);
-			Optional<Body> optionalTo = toBodies.stream().filter(b -> Boolean.TRUE.equals(b.getDistanceToArrival() != null && b.getDistanceToArrival().doubleValue() == 0)).findFirst();
+			Optional<Body> optionalTo = toBodies.stream().filter(b -> Boolean.TRUE.equals(b.getDistanceToArrivalLs() != null && b.getDistanceToArrivalLs().doubleValue() == 0)).findFirst();
 			if (optionalTo.isPresent()) {
 				this.toStar = optionalTo.get();
 				this.toSpectralClass = this.toStar.getStarClass().name().replaceAll("N", "NS");
