@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import borg.ed.universe.exceptions.NonUniqueResultException;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.service.UniverseService;
+import borg.ed.galaxy.exceptions.NonUniqueResultException;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.service.GalaxyService;
 
 /**
  * Path
@@ -98,8 +98,8 @@ public class Path implements Comparable<Path> {
 		return sortedPaths;
 	}
 
-	public StarSystem getStarSystem(UniverseService universeService) throws NonUniqueResultException {
-		return universeService.findStarSystemByName(this.getMinimizedStarSystem().getName());
+	public StarSystem getStarSystem(GalaxyService galaxyService) throws NonUniqueResultException {
+		return galaxyService.findStarSystemByName(this.getMinimizedStarSystem().getName());
 	}
 
 	public Path getPrev() {

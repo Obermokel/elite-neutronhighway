@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 import org.apache.commons.lang.StringUtils;
 
-import borg.ed.universe.data.Coord;
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.StarSystem;
+import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
 
 /**
  * MinimizedStarSystem

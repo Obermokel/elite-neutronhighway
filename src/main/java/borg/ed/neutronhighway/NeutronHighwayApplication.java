@@ -25,20 +25,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.util.CloseableIterator;
 
+import borg.ed.galaxy.GalaxyApplication;
+import borg.ed.galaxy.constants.StarClass;
+import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.exceptions.NonUniqueResultException;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.service.GalaxyService;
 import borg.ed.neutronhighway.aystar.AyStar;
 import borg.ed.neutronhighway.aystar.MinimizedStarSystem;
 import borg.ed.neutronhighway.aystar.Path;
 import borg.ed.neutronhighway.helper.FuelAndJumpRangeLookup;
-import borg.ed.universe.UniverseApplication;
-import borg.ed.universe.constants.StarClass;
-import borg.ed.universe.data.Coord;
-import borg.ed.universe.exceptions.NonUniqueResultException;
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.service.UniverseService;
 
 @Configuration
-@Import(UniverseApplication.class)
+@Import(GalaxyApplication.class)
 public class NeutronHighwayApplication {
 
 	static final Logger logger = LoggerFactory.getLogger(NeutronHighwayApplication.class);
@@ -60,17 +60,17 @@ public class NeutronHighwayApplication {
 		final float jumpRangeFuelOpt = 81.59f;
 		final FuelAndJumpRangeLookup fuelJumpLUT = new FuelAndJumpRangeLookup(maxFuelTons, maxFuelPerJump, jumpRangeFuelFull, jumpRangeFuelOpt);
 
-		final UniverseService universeService = APPCTX.getBean(UniverseService.class);
+		final GalaxyService galaxyService = APPCTX.getBean(GalaxyService.class);
 
 		// Lookup source and destination
-		StarSystem fromSystem = universeService.findStarSystemByName(fromName);
-		StarSystem toSystem = universeService.findStarSystemByName(toName);
+		StarSystem fromSystem = galaxyService.findStarSystemByName(fromName);
+		StarSystem toSystem = galaxyService.findStarSystemByName(toName);
 		logger.debug(String.format("%s → %s: %.0f Ly", fromSystem.toString(), toSystem.toString(), fromSystem.distanceTo(toSystem)));
 
 		// Write a simple waypoints file
 		final String baseFilename = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + " " + fromSystem.getName().replaceAll("[^\\w\\s\\-\\+\\.]", "_") + " to "
 				+ toSystem.getName().replaceAll("[^\\w\\s\\-\\+\\.]", "_");
-		writeWaypointsFile(fromSystem, toSystem, universeService);
+		writeWaypointsFile(fromSystem, toSystem, galaxyService);
 
 		// Try to find a route
 		Set<MinimizedStarSystem> minimizedNeutronStarSystems = new HashSet<>();
@@ -78,7 +78,7 @@ public class NeutronHighwayApplication {
 		minimizedScoopableStarSystems.add(new MinimizedStarSystem(fromSystem));
 		minimizedScoopableStarSystems.add(new MinimizedStarSystem(toSystem));
 		logger.debug("Loading known entry stars...");
-		try (CloseableIterator<Body> stream = universeService.streamStarsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f, /* isMainStar = */ true, null)) {
+		try (CloseableIterator<Body> stream = galaxyService.streamStarsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f, /* isMainStar = */ true, null)) {
 			while (stream.hasNext()) {
 				Body star = stream.next();
 				if (StringUtils.isNotEmpty(star.getStarSystemName()) && star.getCoord() != null && star.getStarClass() != null) {
@@ -94,7 +94,7 @@ public class NeutronHighwayApplication {
 			}
 		}
 		logger.debug("Loading known systems...");
-		try (CloseableIterator<StarSystem> stream = universeService.streamAllSystemsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f)) {
+		try (CloseableIterator<StarSystem> stream = galaxyService.streamAllSystemsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f)) {
 			while (stream.hasNext()) {
 				minimizedScoopableStarSystems.add(new MinimizedStarSystem(stream.next()));
 			}
@@ -135,7 +135,7 @@ public class NeutronHighwayApplication {
 		}
 		logger.info("maxJumpDistance=" + maxJumpDistance);
 
-		Route route = Route.fromPath(sortedPaths, fuelJumpLUT/*, journal*/, universeService);
+		Route route = Route.fromPath(sortedPaths, fuelJumpLUT/*, journal*/, galaxyService);
 
 		// Write route as VoiceAttack TXT file
 		FileUtils.write(new File(ROUTES_DIR, baseFilename + " Route.txt"), route.toVoiceAttackTxt(), "UTF-8");
@@ -146,7 +146,7 @@ public class NeutronHighwayApplication {
 		FileUtils.write(new File(ROUTES_DIR, baseFilename + " Route.html"), route.toHumanReadableHtml(eddbDumpDate, nKnownArrivalNeutronStars), "UTF-8");
 	}
 
-	private static void writeWaypointsFile(StarSystem fromSystem, StarSystem toSystem, UniverseService universeService) throws IOException {
+	private static void writeWaypointsFile(StarSystem fromSystem, StarSystem toSystem, GalaxyService galaxyService) throws IOException {
 		float directDistance = fromSystem.distanceTo(toSystem);
 		if (directDistance > 999) {
 			File waypointsFile = new File(ROUTES_DIR, new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + " Waypoints "
@@ -163,7 +163,7 @@ public class NeutronHighwayApplication {
 			float stepZ = (toCoord.getZ() - fromCoord.getZ()) / waypointsNeeded;
 			for (int wp = 1; wp <= waypointsNeeded; wp++) {
 				Coord coord = new Coord(fromCoord.getX() + wp * stepX, fromCoord.getY() + wp * stepY, fromCoord.getZ() + wp * stepZ);
-				StarSystem closestSystem = universeService.findNearestSystem(coord);
+				StarSystem closestSystem = galaxyService.findNearestSystem(coord);
 				FileUtils.write(waypointsFile, String.format(Locale.US, "Waypoint %2d: %s\n", wp, closestSystem.getName()), "UTF-8", true);
 			}
 		}
@@ -177,17 +177,17 @@ public class NeutronHighwayApplication {
 		private final FuelAndJumpRangeLookup fuelJumpLUT;
 		//		private final Journal journal;
 
-		public static Route fromPath(List<Path> sortedPaths, FuelAndJumpRangeLookup fuelJumpLUT/*, Journal journal*/, UniverseService universeService) throws NonUniqueResultException {
+		public static Route fromPath(List<Path> sortedPaths, FuelAndJumpRangeLookup fuelJumpLUT/*, Journal journal*/, GalaxyService galaxyService) throws NonUniqueResultException {
 			Route route = new Route(fuelJumpLUT/*, journal*/);
 
 			Path prevPath = null;
 			for (Path currPath : sortedPaths) {
 				if (prevPath != null) {
-					StarSystem fromSystem = universeService.findStarSystemByName(prevPath.getMinimizedStarSystem().getName());
-					List<Body> fromBodies = universeService.findBodiesByStarSystemName(prevPath.getMinimizedStarSystem().getName());
+					StarSystem fromSystem = galaxyService.findStarSystemByName(prevPath.getMinimizedStarSystem().getName());
+					List<Body> fromBodies = galaxyService.findBodiesByStarSystemName(prevPath.getMinimizedStarSystem().getName());
 
-					StarSystem toSystem = universeService.findStarSystemByName(currPath.getMinimizedStarSystem().getName());
-					List<Body> toBodies = universeService.findBodiesByStarSystemName(currPath.getMinimizedStarSystem().getName());
+					StarSystem toSystem = galaxyService.findStarSystemByName(currPath.getMinimizedStarSystem().getName());
+					List<Body> toBodies = galaxyService.findBodiesByStarSystemName(currPath.getMinimizedStarSystem().getName());
 
 					route.add(new RouteElement(route, currPath.getTotalJumps(), fromSystem, fromBodies, toSystem, toBodies, currPath.getFuelLevel(), currPath.getTravelledDistanceLy(),
 							currPath.getRemainingDistanceLy()));

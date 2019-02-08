@@ -19,17 +19,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.util.CloseableIterator;
 
-import borg.ed.universe.UniverseApplication;
-import borg.ed.universe.constants.StarClass;
-import borg.ed.universe.data.Coord;
-import borg.ed.universe.exceptions.NonUniqueResultException;
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.service.UniverseService;
-import borg.ed.universe.util.MiscUtil;
+import borg.ed.galaxy.GalaxyApplication;
+import borg.ed.galaxy.constants.StarClass;
+import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.exceptions.NonUniqueResultException;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.service.GalaxyService;
+import borg.ed.galaxy.util.MiscUtil;
 
 @Configuration
-@Import(UniverseApplication.class)
+@Import(GalaxyApplication.class)
 public class WolfHunterApplication {
 
 	static final Logger logger = LoggerFactory.getLogger(WolfHunterApplication.class);
@@ -37,11 +37,11 @@ public class WolfHunterApplication {
 	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(WolfHunterApplication.class);
 
 	public static void main(String[] args) throws NonUniqueResultException {
-		final UniverseService universeService = APPCTX.getBean(UniverseService.class);
+		final GalaxyService galaxyService = APPCTX.getBean(GalaxyService.class);
 
-		//		StarSystem starSystem = universeService.findStarSystemByName("9 Alpha Camelopardalis");
+		//		StarSystem starSystem = galaxyService.findStarSystemByName("9 Alpha Camelopardalis");
 		//		logger.info(starSystem.toString());
-		//		Page<StarSystem> nearSystemsPage = universeService.findSystemsNear(starSystem.getCoord(), 200, PageRequest.of(0, 100));
+		//		Page<StarSystem> nearSystemsPage = galaxyService.findSystemsNear(starSystem.getCoord(), 200, PageRequest.of(0, 100));
 		//		for (StarSystem nearSystem : nearSystemsPage.getContent()) {
 		//			logger.info(starSystem.getName() + " -> " + nearSystem.getName() + " = " + nearSystem.getCoord().distanceTo(starSystem.getCoord()));
 		//		}
@@ -50,7 +50,7 @@ public class WolfHunterApplication {
 		int counter = 0;
 		Set<String> wolfRayetSectorNames = new HashSet<>();
 		List<StarClass> wolfRayetStarClasses = Arrays.asList(StarClass.W, StarClass.WC, StarClass.WN, StarClass.WNC, StarClass.WO);
-		try (CloseableIterator<Body> stream = universeService.streamStarsNear(new Coord(), 65000, null, wolfRayetStarClasses)) {
+		try (CloseableIterator<Body> stream = galaxyService.streamStarsNear(new Coord(), 65000, null, wolfRayetStarClasses)) {
 			while (stream.hasNext()) {
 				counter++;
 				Body wolfRayetStar = stream.next();
@@ -69,7 +69,7 @@ public class WolfHunterApplication {
 		int systemCounter = 0;
 		Map<String, Coord> allSectorNames = new HashMap<>();
 		Set<String> aaSectorNames = new HashSet<>();
-		try (CloseableIterator<StarSystem> stream = universeService.streamAllSystemsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f)) {
+		try (CloseableIterator<StarSystem> stream = galaxyService.streamAllSystemsWithin(-100000f, 100000f, -100000f, 100000f, -100000f, 100000f)) {
 			while (stream.hasNext()) {
 				systemCounter++;
 				StarSystem starSystem = stream.next();

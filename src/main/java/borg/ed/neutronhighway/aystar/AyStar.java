@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.model.StarSystem;
 import borg.ed.neutronhighway.helper.FuelAndJumpRangeLookup;
-import borg.ed.universe.data.Coord;
-import borg.ed.universe.model.StarSystem;
 
 /**
  * AyStar
